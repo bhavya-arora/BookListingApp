@@ -3,6 +3,7 @@ package com.bhavya.booklistingapp;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -53,11 +54,14 @@ public class BooksAdapter extends RecyclerView.Adapter<BooksAdapter.MyViewHolder
                 int itemPosition = parent.indexOfChild(view);
                 book returnedBook = bookList.get(itemPosition);
                 String infoUrl = returnedBook.getInfoUrl();
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(infoUrl));
+                //Intent intent = new Intent(Intent.ACTION_VIEW);
+                //intent.setData(Uri.parse(infoUrl));
+
+                Intent intent = new Intent(mContext,bookListView.class);
+                intent.putExtra("infoUrl", infoUrl);
 
                 //browser chooser
-                Intent.createChooser(intent, "Choose Broser");
+                //Intent.createChooser(intent, "Choose Broser");
                 mContext.startActivity(intent);
             }
         });

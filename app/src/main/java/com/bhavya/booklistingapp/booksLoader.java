@@ -11,6 +11,7 @@ import java.util.List;
 
 public class booksLoader extends AsyncTaskLoader<List<book>> {
     String url;
+    public static List<book> arrayList = null;
 
     public booksLoader(Context context, String url) {
         super(context);
@@ -30,7 +31,7 @@ public class booksLoader extends AsyncTaskLoader<List<book>> {
         if(url == null) {
             return null;
         }
-        List<book> arrayList = QueryUtils.fetchBooksData(url);
+        arrayList = QueryUtils.fetchBooksData(url);
         return arrayList;
     }
 }

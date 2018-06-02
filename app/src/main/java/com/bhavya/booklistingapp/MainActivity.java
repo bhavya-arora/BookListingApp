@@ -4,6 +4,8 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Parcelable;
+import android.os.PersistableBundle;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.app.LoaderManager;
@@ -36,12 +38,16 @@ public class MainActivity extends AppCompatActivity  implements LoaderManager.Lo
 
     private static final String bookFetchUrl = "https://www.googleapis.com/books/v1/volumes";
     private RecyclerView recyclerView;
-    private BooksAdapter adapter;
-    private List<book> bookList;
+    public BooksAdapter adapter;
+    /* Arraylist is static so that it binds with instance of class
+    * and we dont have to initialize again in else under onCreate*/
+    public static ArrayList<book> bookList = null;
     private static final int BOOKS_LOADER_ID = 1;
     private EditText searchBox;
     private ProgressBar books_progressBar;
     private TextView empty_state;
+
+    public static final String TAG = "MyActivity";
 
     @Override
     public Loader<List<book>> onCreateLoader(int id, Bundle args) {
@@ -73,6 +79,7 @@ public class MainActivity extends AppCompatActivity  implements LoaderManager.Lo
         books_progressBar.setVisibility(View.GONE);
         if(list !=null && !list.isEmpty()){
             prepareBooks(list);
+            Log.i(TAG, "onLoadFinished: ");
         }
         else{
             empty_state.setText("NO DATA");
@@ -88,6 +95,7 @@ public class MainActivity extends AppCompatActivity  implements LoaderManager.Lo
         }
         bookList.clear();
         adapter.notifyDataSetChanged();
+        Log.i(TAG, "onLoaderReset: " + bookList);
     }
 
     @Override
@@ -96,6 +104,7 @@ public class MainActivity extends AppCompatActivity  implements LoaderManager.Lo
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
 
         books_progressBar = (ProgressBar) findViewById(R.id.books_progressBar);
         books_progressBar.setIndeterminate(true);
@@ -113,11 +122,25 @@ public class MainActivity extends AppCompatActivity  implements LoaderManager.Lo
         }
 
         initCollapsingToolbar();
-
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 
-        bookList = new ArrayList<>();
-        adapter = new BooksAdapter(this, bookList);
+        if(savedInstanceState == null || !savedInstanceState.containsKey("booksList")){
+            bookList = new ArrayList<>();
+            adapter = new BooksAdapter(this, bookList);
+
+            //log Statement
+            Log.i(TAG, "onCreate: " + bookList);
+        }else {
+            bookList.addAll(savedInstanceState.<book>getParcelableArrayList("booksList"));
+
+            //log statement
+            Log.i(TAG, "onCreate: under else" + bookList );
+            adapter = new BooksAdapter(this, bookList);
+            //this will reLoad the adapter
+            adapter.notifyDataSetChanged();
+
+        }
+
 
         RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(this, 2);
         recyclerView.setLayoutManager(mLayoutManager);
@@ -135,12 +158,19 @@ public class MainActivity extends AppCompatActivity  implements LoaderManager.Lo
         }
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList("booksList", bookList);
+        super.onSaveInstanceState(outState);
+    }
+
     public void searchButton(View view){
         books_progressBar.setVisibility(View.VISIBLE);
         bookList.clear();
         adapter.notifyDataSetChanged();
         getLoaderManager().restartLoader(BOOKS_LOADER_ID, null, this);
         getLoaderManager().initLoader(BOOKS_LOADER_ID, null, this);
+        Log.i(TAG, "searchButton: "  + bookList);
     }
 
     /**
@@ -183,6 +213,7 @@ public class MainActivity extends AppCompatActivity  implements LoaderManager.Lo
     private void prepareBooks(List<book> booksList) {
 
         bookList.addAll(booksList);
+        Log.i(TAG, "prepareBooks: " + bookList);
 
         //notifiying the recycleradapter that data has been changed
         adapter.notifyDataSetChanged();
